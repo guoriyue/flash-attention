@@ -1892,12 +1892,10 @@ def _flash_attn_bwd(
         # SM120: uses SM80 MMA with 99 KB SMEM, 128 threads (4 warps).
         m_block_size = 64
         n_block_size = 64
-        if head_dim <= 64:
-            num_stages_Q = 2
-            num_stages_dO = 2
-        else:
-            num_stages_Q = 1
-            num_stages_dO = 1
+        # A second Q/dO stage hurts SM120 residency more than it helps latency
+        # hiding at D<=64. Larger head dimensions already require one stage.
+        num_stages_Q = 1
+        num_stages_dO = 1
         SdP_swapAB = False
         dKV_swapAB = False
         dQ_swapAB = False
